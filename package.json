@@ -10,8 +10,7 @@
     "build": "npm run build --workspace client",
     "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
     "install:all": "npm install",
-    "prisma:generate": "npm run prisma:generate --workspace server",
-    "postinstall": "npm run prisma:generate"
+    "prisma:generate": "npm run prisma:generate --workspace server"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
