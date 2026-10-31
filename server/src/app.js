@@ -9,6 +9,7 @@ import { reportCategories, reportMonthly, reportSummary } from "./controllers/re
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || true }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: true }));
