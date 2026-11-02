@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, CircleDollarSign, CreditCard, Plus } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { getCharts, getSummary } from "../services/api";
@@ -7,26 +7,27 @@ import { useTransactions } from "../hooks/useTransactions";
 import TransactionModal from "../components/TransactionModal";
 const getPeriods = () => {
   const now = new Date();
+  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   return {
-    "Bulan ini": { startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(), endDate: now.toISOString() },
-    "7 hari terakhir": { startDate: new Date(now.getTime() - 6 * 86400000).toISOString(), endDate: now.toISOString() },
-    "Tahun ini": { startDate: new Date(now.getFullYear(), 0, 1).toISOString(), endDate: now.toISOString() }
+    "Bulan ini": { startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(), endDate: endOfToday.toISOString() },
+    "7 hari terakhir": { startDate: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6).toISOString(), endDate: endOfToday.toISOString() },
+    "Tahun ini": { startDate: new Date(now.getFullYear(), 0, 1).toISOString(), endDate: endOfToday.toISOString() }
   };
 };
 const colors = ["#635BFF", "#22c55e", "#f59e0b", "#f43f5e", "#06b6d4", "#8b5cf6"];
 export default function Dashboard() {
   const [period, setPeriod] = useState("7 hari terakhir"); const [summary, setSummary] = useState({}); const [charts, setCharts] = useState({ trend: [], categories: [] }); const [modal, setModal] = useState(false); const [toast, setToast] = useState("");
   const loadId = useRef(0);
-  const { items, reload } = useTransactions({ ...getPeriods()[period], limit: 5 });
+  const params = useMemo(() => ({ ...getPeriods()[period], limit: 5 }), [period]);
+  const { items, reload } = useTransactions(params);
   const load = useCallback(async () => {
     const id = ++loadId.current;
-    const params = getPeriods()[period];
     const [nextSummary, nextCharts] = await Promise.all([getSummary(params), getCharts(params)]);
     if (id === loadId.current) {
       setSummary(nextSummary);
       setCharts(nextCharts);
     }
-  }, [period]);
+  }, [params]);
   useEffect(() => { load(); }, [load]);
   const refresh = async () => {
     await Promise.all([load(), reload()]);
